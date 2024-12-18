@@ -1,0 +1,108 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+  }
+  
+  #chat-container {
+    max-width: 600px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  #messages {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  #messages li {
+    padding: 8px;
+    margin-bottom: 10px;
+    background-color: #e5e5e5;
+    border-radius: 4px;
+  }
+  
+  #chat-form {
+    display: flex;
+  }
+  
+  #chat-form input {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  #chat-form button {
+    padding: 10px;
+    background-color: #007bff;
+    border: none;
+    color: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: 5px;
+  }
+
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+  }
+  
+  #chat-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  li {
+    background-color: #ffffff;
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  strong {
+    color: #2c3e50;
+  }
+  
+  .reactions {
+    margin-top: 10px;
+  }
+  
+  .like-btn, .emoji-btn {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    margin-right: 5px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .like-btn:hover, .emoji-btn:hover {
+    background-color: #2980b9;
+  }
+  
+  .like-btn {
+    display: inline-block;
+  }
+  
+  .emoji-btn {
+    display: inline-block;
+  }
+  
+  .emoji-btn::after {
+    content: ' 😀';
+  }
+  

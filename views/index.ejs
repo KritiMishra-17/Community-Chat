@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Survivors Chat</title>
+  <link rel="stylesheet" href="/styles.css">
+
+  <style>
+    .comments-section {
+      margin-top: 10px;
+      padding: 10px;
+      background-color: #f4f4f4;
+    }
+
+    .comment {
+      border-bottom: 1px solid #ddd;
+      padding: 5px 0;
+    }
+  </style>
+
+</head>
+
+<body>
+  <h3>SURVIVORS CHAT</h3>
+  <h5>Welcome, <%= username %>!</h5>
+
+  <!-- New Chat Button -->
+  <form method="get" action="/chats/new">
+    <button>New Chat</button>
+  </form>
+
+  <br><br>
+
+  <!-- Chat List -->
+  <% for (let chat of chats) { %>
+    <div class="chat">
+      <!-- Chat details -->
+      <p>From: <i>
+          <%= chat.username %>
+        </i></p>
+      <p>Message: <%= chat.message %>
+      </p>
+
+      <!-- Like and Comment Buttons -->
+      <button class="like-button" data-chat-id="<%= chat._id %>">
+        👍 Like (<span class="like-count">
+          <%= chat.reactions.likes %>
+        </span>)
+      </button>
+
+      <select name="emoji" class="emoji-select">
+        <option value="😀">😀</option>
+        <option value="😢">😢</option>
+        <option value="😡">😡</option>
+        <option value="❤️">❤️</option>
+      </select>
+      <!--<button type="submit" class="emoji-button">Send Emoji</button> -->
+      </form>
+      </form>
+
+      <button class="comment-toggle" data-chat-id="<%= chat._id %>">
+        💬 Comments (<span class="comment-count">
+          <%= chat.comments.length %>
+        </span>)
+      </button>
+
+      <!-- Edit button -->
+      <% if (chat.username===username) { %>
+        <form method="GET" action="/chats/<%= chat._id %>/edit">
+          <button id="edit-button" >Edit</button>
+        </form>
+
+        <!-- Delete button -->
+        <form method="POST" action="/chats/<%= chat._id %>?_method=DELETE">
+          <button id="delete-button">Delete</button>
+        </form>
+        <% } %>
+
+          </form>
+
+          <br>
+
+          <!-- timestamp -->
+          <p>
+            <%= chat.timestamp %>
+          </p>
+          <!-- Comments Section -->
+          <div class="comments-section" id="comments-<%= chat._id %>" style="display:none;">
+            <!-- Existing Comments -->
+            <% chat.comments.forEach(function(comment) { %>
+              <div class="comment">
+                <strong>
+                  <%= comment.username %>
+                </strong>
+                <p>
+                  <%= comment.text %>
+                </p>
+                <small>
+                  <%= comment.timestamp %>
+                </small>
+              </div>
+              <% }); %>
+
+                <!-- Comment Input Form -->
+                <form class="comment-form" data-chat-id="<%= chat._id %>">
+                  <input type="text" name="commentText" placeholder="Add a comment..." required>
+                  <button type="submit">Send</button>
+                </form>
+          </div>
+    </div>
+    <hr>
+    </div>
+
+    <br><br>
+    <% } %>
+
+      <!-- Include socket.io script -->
+      <script src="/socket.io/socket.io.js"></script>
+      <script>
+        var socket = io();
+
+        // Example: Emit a like event to the server
+        document.querySelectorAll('.like-button').forEach(button => {
+          button.addEventListener('click', function (e) {
+            e.preventDefault();
+            const chatId = button.dataset.chatId;
+            console.log('Emitting like for chat ID:', chatId); // Debugging line
+            socket.emit('like message', { id: chatId });
+          });
+        });
+
+        // Example: Emit emoji event
+        document.querySelectorAll('.emoji-select').forEach(select => {
+          select.addEventListener('change', function (e) {
+            socket.emit('emoji chat', { chatId: this.dataset.chatId, emoji: this.value });
+          });
+        });
+
+        // Listen for the "reaction update" event and update the UI
+        /*socket.on('reaction update', (updatedMessage) => {
+          const likeButton = document.querySelector(`[data-chat-id="${updatedMessage._id}"] .like-button`);
+          likeButton.querySelector('.like-count').textContent = updatedMessage.reactions.likes;
+        });*/
+
+
+        // Comment Toggle
+        document.querySelectorAll('.comment-toggle').forEach(button => {
+          button.addEventListener('click', function () {
+            const chatId = this.dataset.chatId;
+            const commentsSection = document.getElementById(`comments-${chatId}`);
+            commentsSection.style.display =
+              commentsSection.style.display === 'none' ? 'block' : 'none';
+          });
+        });
+
+        // Comment Form Submission
+        document.querySelectorAll('.comment-form').forEach(form => {
+          form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const chatId = this.dataset.chatId;
+            const commentInput = this.querySelector('input[name="commentText"]');
+
+            socket.emit('add comment', {
+              chatId: chatId,
+              username: '<%= username %>',
+              commentText: commentInput.value
+            });
+
+            commentInput.value = ''; // Clear input
+          });
+        });
+
+        // Real-time comment update
+        socket.on('new comment', (data) => {
+          const commentsContainer = document.querySelector(`#comments-${data.chatId}`);
+          const commentCount = document.querySelector(`.comment-toggle[data-chat-id="${data.chatId}"] .comment-count`);
+
+          // Create new comment element
+          const commentDiv = document.createElement('div');
+          commentDiv.classList.add('comment');
+          commentDiv.innerHTML = `
+                <strong>${data.comment.username}</strong>
+                <p>${data.comment.text}</p>
+                <small>${new Date(data.comment.timestamp).toLocaleString()}</small>
+            `;
+
+          // Append new comment
+          commentsContainer.insertBefore(commentDiv, commentsContainer.querySelector('.comment-form'));
+
+          // Update comment count
+          commentCount.textContent = parseInt(commentCount.textContent) + 1;
+
+          // Ensure comments section is visible
+          commentsContainer.style.display = 'block';
+        });
+
+
+        socket.on('reaction update', (updatedMessage) => {
+          const likeButton = document.querySelector(`[data-chat-id="${updatedMessage._id}"]`);
+          if (likeButton) {
+            const likeCount = likeButton.querySelector('.like-count');
+            likeCount.textContent = updatedMessage.reactions.likes;
+          }
+        });
+
+      </script>
+</body>
+
+</html>
